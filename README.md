@@ -238,6 +238,10 @@ conda activate your-env && python watchdog.py --watch
 4. 在项目目录下调用 `claude -p --permission-mode bypassPermissions`
 5. 显示实时进度（旋转动画 + 跳动计时）
 
+**每次成功运行 watchdog 后**，必须：
+- 更新所有受影响 `notes.md` 的 §文献关联 章节，确保馆藏论文间的交叉引用准确
+- 检查文件夹和 PDF 名称是否与实际论文标题一致（去除下载时留下的 `Author - Year -` 文件名前缀）
+
 ## Python 环境
 
 需要 Python 时，始终先激活 你的 conda 环境：
@@ -261,3 +265,4 @@ conda activate your-env && pip install PyPDF2
 ## 交叉参考
 
 - `CLAUDE.md` 是本文件的英文权威版本。**每次修改 CLAUDE.md 时，必须同步更新本 README.md。** 两者始终保持一致。
+- **公开模板仓库** (`git@github.com:DavidCaoResearch/Paper-Reading-Template.git`)：每次修改 CLAUDE.md、README.md、`.gitignore`、`watchdog.py` 或其他项目配置文件时，需同步更新到公开仓库。公开仓库与私有仓库的所有共享基础设施文件须保持一致。
