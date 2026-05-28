@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Watchdog artifacts
+.processed_papers.json
+watchdog.log
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Claude
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
