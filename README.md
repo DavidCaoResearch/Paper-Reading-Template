@@ -2,7 +2,7 @@
 
 ## 项目标识
 
-- **仓库地址**: `git@github.com:DavidCaoResearch/Paper-Reading.git`
+- **仓库地址**: `git@github.com:DavidCaoResearch/Paper-Reading-Template.git`
 - **核心任务**: 学术论文的自动化阅读、分类与笔记撰写。
 - **语言约定**: 笔记与文档使用中文；代码/shell/命令使用英文。
 
@@ -13,10 +13,10 @@
 ### 1. 克隆与环境
 
 ```bash
-git clone git@github.com:DavidCaoResearch/Paper-Reading.git
-cd Paper-Reading
-conda create -n opt python=3.11 -y
-conda activate opt
+git clone git@github.com:DavidCaoResearch/Paper-Reading-Template.git
+cd Paper-Reading-Template
+conda create -n your-env python=3.11 -y
+conda activate your-env
 pip install PyPDF2
 ```
 
@@ -32,12 +32,12 @@ npm install -g @anthropic-ai/claude-code
 |---|---|---|
 | `PyPDF2` | ≥3.0 | PDF 标题提取与文本阅读 |
 
-安装：`conda activate opt && pip install PyPDF2`
+安装：`conda activate your-env && pip install PyPDF2`
 
 ### 4. Windows 特别说明
 
 - **硬链接代替软链接**：Windows 创建符号链接需要管理员权限。本项目使用**硬链接**（Python `os.link()`）——效果同等去重，无需提权。
-- **Conda 激活**：Windows cmd/PowerShell 中需分步执行 `conda activate opt`，不能与后续命令用 `&&` 串联（仅 Git Bash 支持）。
+- **Conda 激活**：Windows cmd/PowerShell 中需分步执行 `conda activate your-env`，不能与后续命令用 `&&` 串联（仅 Git Bash 支持）。
 - **开发者模式**：若需真正软链接，在 Windows 设置 → 隐私与安全性 → 开发者选项中启用开发者模式。
 
 ### 5. Watchdog 权限
@@ -215,7 +215,7 @@ git push origin main
 **推荐用法（一次性扫描，默认）：**
 
 1. 将一篇或多篇 PDF 拖入 `原始文献/`
-2. 运行：`conda activate opt && python watchdog.py`
+2. 运行：`conda activate your-env && python watchdog.py`
 3. 所有待处理论文依次处理完毕，脚本自动退出
 4. 查看 `watchdog.log` 确认结果
 
@@ -224,7 +224,7 @@ git push origin main
 **持续监控模式**（快速连续添加论文时使用）：
 
 ```bash
-conda activate opt && python watchdog.py --watch
+conda activate your-env && python watchdog.py --watch
 ```
 
 每 5 秒轮询一次，`Ctrl+C` 停止。
@@ -239,16 +239,16 @@ conda activate opt && python watchdog.py --watch
 
 ## Python 环境
 
-需要 Python 时，始终先激活 `opt` conda 环境：
+需要 Python 时，始终先激活 你的 conda 环境：
 
 ```bash
-conda activate opt && python <script>
+conda activate your-env && python <script>
 ```
 
 **所有 Python 依赖**（仅需安装一次）：
 
 ```bash
-conda activate opt && pip install PyPDF2
+conda activate your-env && pip install PyPDF2
 ```
 
 ## 自动化说明

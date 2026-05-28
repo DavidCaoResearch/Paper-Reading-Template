@@ -2,7 +2,7 @@
 
 ## Project Identity
 
-- **Repository**: `git@github.com:DavidCaoResearch/Paper-Reading.git`
+- **Repository**: `git@github.com:DavidCaoResearch/Paper-Reading-Template.git`
 - **Core Mission**: Automated reading, classification, and note-taking for academic papers.
 - **Language**: All notes and documentation shall be written in Chinese; code/shell/commands in English.
 
@@ -13,10 +13,10 @@ Run these once on any new machine to get everything working:
 ### 1. Clone & Environment
 
 ```bash
-git clone git@github.com:DavidCaoResearch/Paper-Reading.git
-cd Paper-Reading
-conda create -n opt python=3.11 -y
-conda activate opt
+git clone git@github.com:DavidCaoResearch/Paper-Reading-Template.git
+cd Paper-Reading-Template
+conda create -n your-env python=3.11 -y
+conda activate your-env
 pip install PyPDF2
 ```
 
@@ -32,12 +32,12 @@ npm install -g @anthropic-ai/claude-code
 |---|---|---|
 | `PyPDF2` | ≥3.0 | PDF title extraction & text reading |
 
-Install: `conda activate opt && pip install PyPDF2`
+Install: `conda activate your-env && pip install PyPDF2`
 
 ### 4. Windows-Specific Notes
 
 - **Hard links vs symlinks**: Windows requires admin privileges for symbolic links. Use **hard links** (`os.link()` in Python) instead — same deduplication, no elevation needed.
-- **Conda activation**: On Windows cmd/PowerShell, run `conda activate opt` as a separate command before `python watchdog.py` (the `&&` chaining only works in Git Bash).
+- **Conda activation**: On Windows cmd/PowerShell, run `conda activate your-env` as a separate command before `python watchdog.py` (the `&&` chaining only works in Git Bash).
 - **Developer Mode**: If you want true symlinks, enable Developer Mode in Windows Settings → Privacy & Security → For Developers.
 
 ### 5. Watchdog Permissions
@@ -229,7 +229,7 @@ Push memory files together with the rest of the repo.
 **Recommended workflow (one-shot, default):**
 
 1. Drop one or more PDFs into `原始文献/`
-2. Run: `conda activate opt && python watchdog.py`
+2. Run: `conda activate your-env && python watchdog.py`
 3. All pending papers are processed and the script exits
 4. Check `watchdog.log` for results
 
@@ -238,7 +238,7 @@ This mode does no background polling — it fires once and quits.
 **Continuous watch mode** (for rapid-fire paper additions):
 
 ```bash
-conda activate opt && python watchdog.py --watch
+conda activate your-env && python watchdog.py --watch
 ```
 
 Polls every 5 seconds until `Ctrl+C`. Use this when you're adding many papers in quick succession.
@@ -253,16 +253,16 @@ Polls every 5 seconds until `Ctrl+C`. Use this when you're adding many papers in
 
 ## Python Environment
 
-When Python is needed (e.g., PDF parsing, text extraction, or any scripting), always activate the `opt` conda environment first:
+When Python is needed (e.g., PDF parsing, text extraction, or any scripting), always activate a conda environment (e.g. `your-env`) first:
 
 ```bash
-conda activate opt && python <script>
+conda activate your-env && python <script>
 ```
 
 **All Python dependencies** (install once):
 
 ```bash
-conda activate opt && pip install PyPDF2
+conda activate your-env && pip install PyPDF2
 ```
 
 ## Automation Notes

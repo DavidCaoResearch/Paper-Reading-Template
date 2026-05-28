@@ -2,8 +2,8 @@
 """Process pending papers in 原始文献/ and exit.
 
 Usage:
-    conda activate opt && python watchdog.py          # one-shot: scan, process, exit
-    conda activate opt && python watchdog.py --watch  # continuous watch mode
+    conda activate your-env && python watchdog.py          # one-shot: scan, process, exit
+    conda activate your-env && python watchdog.py --watch  # continuous watch mode
 
 One-shot mode (default) is the recommended workflow:
   1. Drop one or more PDFs into 原始文献/
