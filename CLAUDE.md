@@ -57,10 +57,11 @@ Paper Reading/
 │   └── <Paper Title>/             # One subfolder per paper
 │       ├── <Paper Title>.pdf      # The original PDF
 │       └── notes.md               # Reading notes (structured, see §Reading Notes)
-├── <Classification A>/            # Classification folders at root level
-│   └── <Paper Title>.pdf          # Hard link → 原始文献/<Title>/<Title>.pdf
-├── <Classification B>/
-│   └── <Paper Title>.pdf
+├── 文献分类/                       # Classification folders — symlinks / hard links to papers
+│   ├── <Classification A>/
+│   │   └── <Paper Title>.pdf      # Hard link → ../../原始文献/<Title>/<Title>.pdf
+│   └── <Classification B>/
+│       └── <Paper Title>.pdf
 ├── 更新日志/
 │   └── changelog.md
 └── memory/
@@ -104,12 +105,12 @@ For each paper, determine **1–N classification folders** based on:
 **Default: hard link** (works everywhere, no elevation):
 ```python
 import os
-os.link("<source PDF absolute path>", "<classification>/<Paper Title>.pdf")
+os.link("<source PDF absolute path>", "文献分类/<Classification>/<Paper Title>.pdf")
 ```
 
 **If you have admin or Developer Mode enabled**, use symlinks instead for path transparency:
 ```cmd
-cmd /c mklink "<classification>\<Paper Title>.pdf" "<full path to source PDF>"
+cmd /c mklink "文献分类\<Classification>\<Paper Title>.pdf" "<full path to source PDF>"
 ```
 
 Both achieve zero-copy deduplication. Symlinks break if the target is deleted; hard links keep the file alive until the last link is removed.
