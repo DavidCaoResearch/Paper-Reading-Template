@@ -489,6 +489,7 @@ body {
   word-break: break-all;
   margin: 0;
 }
+.watchdog-log .progress-line { color: #89b4fa; }
 .watchdog-log .stderr { color: #f38ba8; }
 .watchdog-log .done { color: #a6e3a1; }
 .watchdog-log .error { color: #f38ba8; }

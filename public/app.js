@@ -577,51 +577,83 @@ watchdogRunBtn.addEventListener('click', () => {
   watchdogRunning = true;
   watchdogRunBtn.disabled = true;
   watchdogRunBtn.textContent = '⏳ 运行中…';
-  watchdogStatus.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span> 运行中…';
+  watchdogStatus.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span> 连接服务器…';
   watchdogLog.textContent = '';
 
+  const now = () => new Date().toLocaleTimeString();
   const appendLog = (msg, cls) => {
     const span = document.createElement('span');
     if (cls) span.className = cls;
-    span.textContent = msg + '\n';
+    span.textContent = `[${now()}] ${msg}\n`;
     watchdogLog.appendChild(span);
     watchdogLog.scrollTop = watchdogLog.scrollHeight;
   };
 
-  const es = new EventSource('/api/watchdog/run');
+  appendLog('正在连接 Watchdog 服务…');
+
+  let es;
+  try {
+    es = new EventSource('/api/watchdog/run');
+  } catch (e) {
+    appendLog(`❌ 无法创建连接: ${e.message}`, 'error');
+    finishWatchdog();
+    return;
+  }
+
   es.addEventListener('status', (e) => {
     const data = JSON.parse(e.data);
-    if (data.phase === 'done') {
+    if (data.phase === 'starting') {
+      appendLog(data.message);
+    } else if (data.phase === 'done') {
       appendLog(data.message, 'done');
-      watchdogStatus.innerHTML = '✅ 完成！';
-      watchdogRunBtn.disabled = false;
-      watchdogRunBtn.textContent = '▶ 运行 Watchdog';
-      watchdogRunning = false;
+      watchdogStatus.innerHTML = data.message.includes('0 篇') ? '✅ 无新论文' : '✅ 完成！';
+      finishWatchdog();
       es.close();
       fetchPapers().then(() => { fetchClassifications(); renderPaperList(); });
     } else if (data.phase === 'error') {
       appendLog(data.message, 'error');
       watchdogStatus.innerHTML = '❌ 出错';
-      watchdogRunBtn.disabled = false;
-      watchdogRunBtn.textContent = '▶ 运行 Watchdog';
-      watchdogRunning = false;
+      finishWatchdog();
       es.close();
-    } else { appendLog(data.message); }
+    }
   });
+
+  es.addEventListener('progress', (e) => {
+    const data = JSON.parse(e.data);
+    const lastChild = watchdogLog.lastElementChild;
+    if (lastChild && lastChild.classList.contains('progress-line')) {
+      lastChild.textContent = `[${now()}] ${data.message}\n`;
+    } else {
+      const span = document.createElement('span');
+      span.className = 'progress-line';
+      span.textContent = `[${now()}] ${data.message}\n`;
+      watchdogLog.appendChild(span);
+    }
+    watchdogLog.scrollTop = watchdogLog.scrollHeight;
+  });
+
   es.addEventListener('log', (e) => {
     const data = JSON.parse(e.data);
     appendLog(data.message, data.stream === 'stderr' ? 'stderr' : '');
   });
-  es.onerror = () => {
+
+  es.onerror = (err) => {
     if (watchdogRunning) {
-      appendLog('⚠️ 连接中断', 'error');
-      watchdogStatus.innerHTML = '⚠️ 连接中断';
-      watchdogRunBtn.disabled = false;
-      watchdogRunBtn.textContent = '▶ 运行 Watchdog';
-      watchdogRunning = false;
+      if (es.readyState === EventSource.CLOSED) {
+        if (!watchdogRunning) return;
+      }
+      appendLog('⚠️ 与服务器的连接中断（请检查服务器是否在运行）', 'error');
+      watchdogStatus.innerHTML = '⚠️ 连接失败';
+      finishWatchdog();
     }
     es.close();
   };
+
+  function finishWatchdog() {
+    watchdogRunning = false;
+    watchdogRunBtn.disabled = false;
+    watchdogRunBtn.textContent = '▶ 运行 Watchdog';
+  }
 });
 
 // ===== Resync =====

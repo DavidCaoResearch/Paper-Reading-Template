@@ -367,39 +367,13 @@ app.get('/api/watchdog/run', (req, res) => {
 
   send('status', { phase: 'starting', message: '正在启动 Watchdog…' });
 
-  const proc = spawn('conda run -n opt python watchdog.py', {
+  const proc = spawn('D:\\anaconda3\\envs\\opt\\python.exe', ['watchdog.py'], {
     cwd: BASE_DIR,
-    shell: true,
     windowsHide: true,
   });
 
-  let buffer = '';
-  proc.stdout.on('data', (chunk) => {
-    buffer += chunk.toString();
-    const lines = buffer.split('\n');
-    buffer = lines.pop();
-    for (const line of lines) {
-      if (line.trim()) send('log', { message: line.trim() });
-    }
-  });
-  proc.stderr.on('data', (chunk) => {
-    const text = chunk.toString().trim();
-    if (text) send('log', { message: text, stream: 'stderr' });
-  });
-  proc.on('close', (code) => {
-    if (buffer.trim()) send('log', { message: buffer.trim() });
-    if (code === 0) {
-      send('status', { phase: 'done', message: 'Watchdog 运行完成 ✅ 请刷新页面查看新论文', code: 0 });
-    } else {
-      send('status', { phase: 'error', message: `Watchdog 异常退出 (code: ${code})`, code });
-    }
-    res.end();
-  });
-  proc.on('error', (err) => {
-    send('status', { phase: 'error', message: `无法启动 Watchdog: ${err.message}` });
-    res.end();
-  });
-  req.on('close', () => proc.kill());
+  streamProcOutput(proc, send, res);
+  req.on('close', () => { proc.kill(); res.end(); });
 });
 
 // ========== Login Page Redirect ==========
@@ -559,6 +533,77 @@ app.post('/api/resync', (req, res) => {
   }
   res.end();
 });
+
+// ---- Shared: stream process output with SSE ----
+function streamProcOutput(proc, send, res, doneMsg = 'Watchdog 运行完成 ✅') {
+  let buffer = '';
+  let flushTimer = null;
+  let lastProgress = ''; // track spinner line for dedup
+
+  const flush = (forceAll = false) => {
+    const trimmed = buffer.trim();
+    if (!trimmed) return;
+    // Strip ANSI escape codes
+    const clean = trimmed.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+    // Split into segments separated by \n or \r
+    const segments = clean.split(/[\n\r]+/).map(s => s.trim()).filter(Boolean);
+
+    if (segments.length === 0) { buffer = ''; return; }
+
+    // If it's a spinner line (starts with braille), send only the latest as progress
+    const isSpinner = (s) => /^[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏✓✔✗✘]/.test(s);
+
+    for (const seg of segments) {
+      if (isSpinner(seg)) {
+        lastProgress = seg;
+      } else {
+        // Flush any pending progress before real log line
+        if (lastProgress) { send('progress', { message: lastProgress }); lastProgress = ''; }
+        send('log', { message: seg });
+      }
+    }
+    buffer = '';
+  };
+
+  proc.stdout.on('data', (chunk) => {
+    buffer += chunk.toString();
+    if (buffer.includes('\n')) flush(); // \n = real line break, flush immediately
+  });
+
+  proc.stderr.on('data', (chunk) => {
+    buffer += chunk.toString();
+    if (buffer.includes('\n')) flush();
+  });
+
+  // Periodic flush for spinner updates (every 1s is good)
+  flushTimer = setInterval(() => {
+    if (buffer.trim() || lastProgress) {
+      flush();
+      if (lastProgress && !buffer.trim()) {
+        send('progress', { message: lastProgress });
+        lastProgress = '';
+      }
+    }
+  }, 1000);
+
+  proc.on('close', (code) => {
+    clearInterval(flushTimer);
+    flush(true);
+    if (lastProgress) { send('progress', { message: lastProgress }); lastProgress = ''; }
+    if (code === 0) {
+      send('status', { phase: 'done', message: doneMsg, code: 0 });
+    } else {
+      send('status', { phase: 'error', message: `进程异常退出 (code: ${code})`, code });
+    }
+    res.end();
+  });
+
+  proc.on('error', (err) => {
+    clearInterval(flushTimer);
+    send('status', { phase: 'error', message: `无法启动进程: ${err.message}` });
+    res.end();
+  });
+}
 
 // ---- Auto-seed on first run ----
 function autoSeedIfEmpty() {
