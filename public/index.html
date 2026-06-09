@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Reading — 文献阅读管理</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/katex/katex.min.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title">📚 Paper Reading</h1>
+        <span class="app-subtitle">文献阅读管理</span>
+      </div>
+      <div class="header-center">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="搜索论文标题、分类、关键词…" autocomplete="off">
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="watchdog-btn" class="btn-watchdog" title="导入新论文">🔄 导入论文</button>
+        <button id="admin-btn" class="btn-admin hidden" title="用户管理">👥</button>
+        <span id="paper-count" class="stat-badge"></span>
+        <span id="user-name" class="user-name"></span>
+        <button id="password-btn" class="btn-sm" title="修改密码">🔑</button>
+        <button id="logout-btn" class="btn-sm">退出</button>
+      </div>
+    </header>
+
+    <!-- Body -->
+    <div class="app-body">
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h3>📂 分类筛选</h3>
+          <button id="clear-filter-btn" class="btn-sm">清除</button>
+        </div>
+        <nav class="class-list" id="class-list"></nav>
+        <div class="class-add-row">
+          <input type="text" id="new-class-input" placeholder="新建分类…" autocomplete="off">
+          <button id="new-class-btn" class="btn-sm">+</button>
+        </div>
+        <div class="sidebar-footer">
+          <button id="stats-btn" class="btn-outline">📊 统计</button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content" id="main-content">
+        <div id="list-view">
+          <div id="paper-grid" class="paper-grid"></div>
+          <div id="empty-state" class="empty-state hidden"><p>没有找到匹配的论文</p></div>
+        </div>
+        <div id="detail-view" class="detail-view hidden">
+          <button id="back-btn" class="btn-back">← 返回列表</button>
+          <div id="detail-content"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📊 文献统计</h2>
+          <button id="close-stats-btn" class="btn-close">✕</button>
+        </div>
+        <div id="stats-body"></div>
+      </div>
+    </div>
+
+    <!-- Watchdog Modal -->
+    <div id="watchdog-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-wide">
+        <div class="modal-header">
+          <h2>🔄 导入新论文 — Watchdog</h2>
+          <button id="close-watchdog-btn" class="btn-close">✕</button>
+        </div>
+        <div class="watchdog-body">
+          <p class="watchdog-hint">将 PDF 放入 <code>原始文献</code> 文件夹后，点击下方按钮自动处理。</p>
+          <div class="watchdog-actions">
+            <button id="watchdog-run-btn" class="btn-primary">▶ 运行 Watchdog</button>
+            <button id="resync-btn" class="btn-accent">🔄 从磁盘同步</button>
+            <span id="watchdog-status" class="watchdog-status"></span>
+          </div>
+          <p class="watchdog-hint" style="margin-top:4px;">「从磁盘同步」= git pull 后重新导入新增论文到数据库（已有论文不受影响）</p>
+          <pre id="watchdog-log" class="watchdog-log">等待启动…</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-wide">
+        <div class="modal-header">
+          <h2>👥 用户管理</h2>
+          <button id="close-admin-btn" class="btn-close">✕</button>
+        </div>
+        <div class="admin-body">
+          <div class="admin-add">
+            <input type="text" id="new-username" placeholder="用户名" class="input-sm">
+            <input type="password" id="new-password" placeholder="密码" class="input-sm">
+            <label class="checkbox-label"><input type="checkbox" id="new-is-admin"> 管理员</label>
+            <button id="add-user-btn" class="btn-primary btn-sm-btn">添加用户</button>
+          </div>
+          <table class="user-table" id="user-table">
+            <thead><tr><th>ID</th><th>用户名</th><th>管理员</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirm-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content" style="max-width:400px;">
+        <p id="confirm-msg" style="margin-bottom:20px;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button id="confirm-no" class="btn-outline" style="width:auto;">取消</button>
+          <button id="confirm-yes" class="btn-danger">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div id="password-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+          <h2>🔑 修改密码</h2>
+          <button id="close-password-btn" class="btn-close">✕</button>
+        </div>
+        <div id="password-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/katex/katex.min.js" defer></script>
+  <script src="/katex/auto-render.min.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

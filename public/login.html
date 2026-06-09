@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 — Paper Reading</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .login-page {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: #f0f2f5;
+    }
+    .login-card {
+      background: #fff; border: 1px solid #e2e5e9; border-radius: 12px;
+      padding: 40px 36px; width: 380px; max-width: 90vw;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .login-card h1 { font-size: 1.4rem; text-align: center; margin-bottom: 6px; }
+    .login-card .sub { text-align: center; color: #6b7280; font-size: 0.85rem; margin-bottom: 28px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #374151; }
+    .form-group input {
+      width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 0.95rem; font-family: inherit; transition: border-color 0.15s;
+    }
+    .form-group input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .btn-login {
+      width: 100%; padding: 10px; background: #2563eb; color: #fff; border: none;
+      border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      margin-top: 8px; transition: background 0.15s;
+    }
+    .btn-login:hover { background: #1d4ed8; }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    .login-error { color: #dc2626; font-size: 0.82rem; text-align: center; margin-top: 12px; min-height: 20px; }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <h1>📚 Paper Reading</h1>
+      <p class="sub">文献阅读管理系统</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="username" placeholder="输入用户名" autocomplete="username" required autofocus>
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="password" placeholder="输入密码" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn-login">登 录</button>
+        <div class="login-error" id="login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const errorEl = document.getElementById('login-error');
+    const usernameEl = document.getElementById('username');
+    const passwordEl = document.getElementById('password');
+
+    // Check if already logged in
+    fetch('/api/me').then(r => r.json()).then(data => {
+      if (data.user) window.location.href = '/';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = '登录中…';
+      errorEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: usernameEl.value, password: passwordEl.value }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          window.location.href = '/';
+        } else {
+          errorEl.textContent = data.error || '登录失败';
+        }
+      } catch (err) {
+        errorEl.textContent = '网络错误';
+      }
+      btn.disabled = false;
+      btn.textContent = '登 录';
+    });
+  </script>
+</body>
+</html>

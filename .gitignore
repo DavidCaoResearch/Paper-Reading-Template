@@ -20,3 +20,28 @@ watchdog.log
 .idea/
 *.swp
 *.swo
+PublicVersion/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Configuration (personal)
+.env
+
+# Database (all variants, including per-user)
+papers.db
+papers.db.bak
+papers_user*.db
+papers.db-wal
+papers.db-shm
+papers_user*.db-shm
+papers_user*.db-wal
+
+# Keep empty data directories for new users
+!原始文献/README.md
+原始文献/*
+!文献分类/
+文献分类/*
+!更新日志/changelog.md
+更新日志/*
